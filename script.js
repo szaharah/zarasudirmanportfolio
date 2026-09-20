@@ -26,11 +26,13 @@
     dropColors = Array(columns).fill(0).map(() => (Math.random() > 0.78 ? "#ff2ea6" : "#00ff9c"));
 
     const count = Math.min(70, Math.floor((canvas.width * canvas.height) / 18000));
+    // Match the matrix rain's per-tick pace: rain drops advance one
+    // fontSize (16px) each draw call, so give dots the same order of speed.
     particles = Array.from({ length: count }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.15,
-      vy: -0.1 - Math.random() * 0.2
+      vx: (Math.random() - 0.5) * fontSize * 0.6,
+      vy: -(fontSize * (0.5 + Math.random() * 0.5))
     }));
   }
   resize();
