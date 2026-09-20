@@ -18,6 +18,9 @@
   window.addEventListener('resize', resize);
 
   function draw() {
+    // Skip drawing in light mode — the effect is hidden via CSS opacity
+    // and there's no need to burn cycles animating it underneath.
+    if (document.documentElement.getAttribute('data-theme') === 'light') return;
     ctx.fillStyle = "rgba(5,8,7,0.08)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.font = fontSize + "px monospace";
@@ -33,6 +36,31 @@
     }
   }
   setInterval(draw, 45);
+})();
+
+// ===== Light / dark theme toggle =====
+(function () {
+  const root = document.documentElement;
+  const toggle = document.getElementById('themeToggle');
+  if (!toggle) return;
+
+  function currentTheme() {
+    return root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  }
+
+  function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    toggle.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
+    toggle.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+    try { localStorage.setItem('theme', theme); } catch (e) {}
+  }
+
+  // Sync button state with whatever the inline head script already set
+  applyTheme(currentTheme());
+
+  toggle.addEventListener('click', () => {
+    applyTheme(currentTheme() === 'light' ? 'dark' : 'light');
+  });
 })();
 
 // ===== Mobile nav toggle =====
