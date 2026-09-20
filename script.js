@@ -96,7 +96,7 @@
   setInterval(draw, 45);
 })();
 
-// ===== Light / dark theme toggle =====
+// ===== Light / dark theme toggle (session only — always starts dark) =====
 (function () {
   const root = document.documentElement;
   const toggle = document.getElementById('themeToggle');
@@ -110,11 +110,10 @@
     root.setAttribute('data-theme', theme);
     toggle.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
     toggle.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
-    try { localStorage.setItem('theme', theme); } catch (e) {}
   }
 
-  // Sync button state with whatever the inline head script already set
-  applyTheme(currentTheme());
+  // Always starts dark on load — no localStorage, no OS preference check.
+  applyTheme('dark');
 
   toggle.addEventListener('click', () => {
     applyTheme(currentTheme() === 'light' ? 'dark' : 'light');
