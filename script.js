@@ -32,7 +32,7 @@
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
       vx: (Math.random() - 0.5) * fontSize * 0.3,
-      vy: -(fontSize * (0.25 + Math.random() * 0.25))
+      vy: -(fontSize * (0.15 + Math.random() * 0.15))
     }));
   }
   resize();
