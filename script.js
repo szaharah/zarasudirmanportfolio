@@ -1,39 +1,95 @@
-// ===== Matrix rain background =====
+// ===== Background canvas: matrix rain (dark) / dot network (light) =====
 (function () {
   const canvas = document.getElementById('matrixRain');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  let columns, drops, colors;
-  const chars = "01";
   const fontSize = 16;
+
+  // Dark-mode matrix rain state
+  let columns, drops, dropColors;
+  const chars = "01";
+
+  // Light-mode dot network state
+  let particles = [];
+  const maxLinkDist = 130;
+
+  function isLight() {
+    return document.documentElement.getAttribute('data-theme') === 'light';
+  }
 
   function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+
     columns = Math.floor(canvas.width / fontSize);
     drops = Array(columns).fill(1);
-    colors = Array(columns).fill(0).map(() => (Math.random() > 0.78 ? "#ff2ea6" : "#00ff9c"));
+    dropColors = Array(columns).fill(0).map(() => (Math.random() > 0.78 ? "#ff2ea6" : "#00ff9c"));
+
+    const count = Math.min(70, Math.floor((canvas.width * canvas.height) / 18000));
+    particles = Array.from({ length: count }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.15,
+      vy: -0.1 - Math.random() * 0.2
+    }));
   }
   resize();
   window.addEventListener('resize', resize);
 
-  function draw() {
-    // Skip drawing in light mode — the effect is hidden via CSS opacity
-    // and there's no need to burn cycles animating it underneath.
-    if (document.documentElement.getAttribute('data-theme') === 'light') return;
+  function drawMatrixRain() {
     ctx.fillStyle = "rgba(5,8,7,0.08)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.font = fontSize + "px monospace";
     for (let i = 0; i < drops.length; i++) {
       const text = chars[Math.floor(Math.random() * chars.length)];
-      ctx.fillStyle = colors[i];
+      ctx.fillStyle = dropColors[i];
       ctx.fillText(text, i * fontSize, drops[i] * fontSize);
       if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
         drops[i] = 0;
-        colors[i] = Math.random() > 0.78 ? "#ff2ea6" : "#00ff9c";
+        dropColors[i] = Math.random() > 0.78 ? "#ff2ea6" : "#00ff9c";
       }
       drops[i]++;
     }
+  }
+
+  function drawDotNetwork() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
+      if (p.x < -10) p.x = canvas.width + 10;
+      if (p.x > canvas.width + 10) p.x = -10;
+    }
+
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const a = particles[i], b = particles[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < maxLinkDist) {
+          ctx.strokeStyle = `rgba(4,120,87,${0.14 * (1 - dist / maxLinkDist)})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    ctx.fillStyle = "rgba(4,120,87,0.45)";
+    for (const p of particles) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function draw() {
+    if (isLight()) drawDotNetwork();
+    else drawMatrixRain();
   }
   setInterval(draw, 45);
 })();
